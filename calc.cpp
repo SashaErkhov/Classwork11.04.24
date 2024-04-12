@@ -1,6 +1,7 @@
 #include <iostream>
-#include "formulanode.h"
 #include "formulae.h"
+#include <cstring>
+#include "errors.h"
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
@@ -12,17 +13,26 @@ int main() {
     c=new MultNode(a,b);
     b=new DivNode(new NumNode(1),c);
     c=new PowNode(b,new ParamNode('y'));*/
-    Formula c("abc+*");
+/*    Formula c("abc+*");
     std::cout<<c.tex()<<std::endl;
-    std::cout<<c.str()<<std::endl;
+    std::cout<<c.str()<<std::endl;*/
+    char str[1024];
     try
     {
-        double ans = c.calc();
-        std::cout << c.str() << " = " << ans << std::endl;
-    }
-    catch (const char* e)
-    {
-        std::cout << e << std::endl;
+        while(true) {
+            std::cout << "> ";
+            std::cin.getline(str, 1024);
+            if (strcmp(str, "quit") == 0) break;
+            try {
+                Formula c(str);
+                std::cout << c.str() << std::endl;
+                double ans = c.calc();
+                std::cout << c.str() << " = " << ans << std::endl;
+            }
+            catch (const Error&e) {
+                std::cout <<"Error: "<< e.what() << std::endl;
+            }
+        }
     }
     catch (...)
     {

@@ -7,6 +7,7 @@
 
 #include <string>
 #include <cmath>
+#include "errors.h"
 
 class FormulaNode
 {
@@ -41,6 +42,7 @@ public:
         double tmp;
         std::cout<<param<<" = ";
         std::cin>>tmp;
+        std::cin.ignore();
         return tmp;
     }
     std::string str()const{return std::string(1,param);}
@@ -70,7 +72,7 @@ class MinusNode:public BinNode
 public:
     MinusNode(FormulaNode* L,FormulaNode* R): BinNode(L,R){}
     double calc() const {return left->calc()-right->calc();}
-    std::string str()const{return left->str()+"-("+right->str()+")";}
+    std::string str()const{return left->str()+" - ("+right->str()+")";}
     std::string tex()const{return left->tex()+"- \\left("+right->tex()+"\\right)";}
 };
 //----------------------------
@@ -79,11 +81,10 @@ class MultNode:public BinNode
 public:
     MultNode(FormulaNode* L,FormulaNode* R): BinNode(L,R){}
     double calc() const {return left->calc()*right->calc();}
-    std::string str()const{return "("+ left->str()+")*("+right->str()+")";}
+    std::string str()const{return "("+ left->str()+") * ("+right->str()+")";}
     std::string tex()const{return "\\left("+ left->tex()+"\\right) \\cdot \\left("+right->tex()+"\\right)";}
 };
 //----------------------------
-//TODO
 class DivNode:public BinNode
 {
 public:
@@ -91,10 +92,10 @@ public:
     double calc() const
     {
         double denum=right->calc();
-        if(denum==0) throw "Error: Divide by zero"; //TODO
+        if(denum==0) throw ErrorDivideByZero();
         return left->calc()/denum;
     }
-    std::string str()const{return "("+ left->str()+")/("+right->str()+")";}
+    std::string str()const{return "("+ left->str()+") / ("+right->str()+")";}
     std::string tex()const{return "\\frac{"+left->tex()+"}{"+right->tex()+"}";}
 };
 //----------------------------
@@ -103,7 +104,7 @@ class PowNode:public BinNode
 public:
     PowNode(FormulaNode* L,FormulaNode* R): BinNode(L,R){}
     double calc() const{return std::pow(left->calc(),right->calc());}
-    std::string str()const{return "("+ left->str()+")^("+right->str()+")";}
+    std::string str()const{return "("+ left->str()+") ^ ("+right->str()+")";}
     std::string tex()const{return "\\left("+ left->tex()+"\\right)^{"+right->tex()+"}";}
 };
 
