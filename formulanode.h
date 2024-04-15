@@ -8,6 +8,8 @@
 #include <string>
 #include <cmath>
 #include "errors.h"
+#include <iostream>
+#include "functions.h"
 
 class FormulaNode
 {
@@ -106,6 +108,52 @@ public:
     double calc() const{return std::pow(left->calc(),right->calc());}
     std::string str()const{return "("+ left->str()+") ^ ("+right->str()+")";}
     std::string tex()const{return "\\left("+ left->tex()+"\\right)^{"+right->tex()+"}";}
+};
+//----------------------------
+class UnarNode:public FormulaNode
+{
+protected:
+    FormulaNode* next;
+public:
+    UnarNode(FormulaNode* node):next(node){}
+    ~UnarNode(){delete next;}
+};
+//----------------------------
+class UMinusNode:public UnarNode
+{
+public:
+    UMinusNode(FormulaNode* node):UnarNode(node){}
+    double calc()const{return -next->calc();}
+    std::string str()const{return "-("+next->str()+")";}
+    std::string tex()const{return "-("+next->tex()+")";}
+};
+//----------------------------
+class FuncNode: public UnarNode
+{
+    int funcNumber;
+public:
+    FuncNode(char s,FormulaNode* node):UnarNode(node)
+    {
+        funcNumber= funcNumberByShortName(s);
+    }
+    FuncNode(const char* s,FormulaNode* node):UnarNode(node)
+    {
+        funcNumber= funcNumberByLongName(s);
+    }
+    double calc() const
+    {
+        return (FTable[funcNumber].fun)(next->calc());
+    }
+    std::string str() const
+    {
+        return std::string(FTable[funcNumber].longName)
+        +"("+next->str()+")";
+    }
+    std::string tex() const
+    {
+        return "\\"+std::string(FTable[funcNumber].longName)
+               +"("+next->tex()+")";
+    }
 };
 
 #endif //CALC_FORMULANODE_H
