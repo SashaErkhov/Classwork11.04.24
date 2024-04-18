@@ -7,52 +7,28 @@
 
 #include <cmath>
 #include "errors.h"
+#include <cstring>
 
 typedef double (*pfun)(double);
 
-struct FuncInfo{
-    char shortName;
-    const char *longName;
-    pfun fun;
-};
+double sign(double x);
 
-double sign(double x){
-    return x==0? 0: (x>0? 1.0:-1.0);
-}
-
-const FuncInfo FTable[] = {
-        {char(128),"arcsin",std::asin},
-        {char(129),"arccos",std::acos},
-        {char(130),"sin",std::sin},
-        {char(131),"cos",std::cos},
-        {char(132),"arctg",std::atan},
-        {char(133),"tg",std::tan},
-        {char(134),"ln",std::log},
-        {char(135),"exp",std::exp},
-        {char(136),"abs",std::fabs},
-        {char(137),"sh",std::sinh},
-        {char(138),"ch",std::cosh},
-        {char(139),"sqrt",std::sqrt},
-        {char(140),"sign",sign}
-};
-
-const int sizeFTable = sizeof(FTable)/sizeof(FTable[0]);
-
-int funcNumberByShortName(char s)
-{
-    for(int i=0;i<sizeFTable;++i){
-        if(FTable[i].shortName == s) return i;
+class FunctionsTable {
+    struct FuncInfo {
+        char shortName;
+        const char *longName;
+        pfun fun;
+    };
+    static const FuncInfo FTable[];
+    static const int sizeFTable;
+public:
+    static int funcNumberByLongName(const char* s);
+    static int funcNumberByShortName(char s);
+    static const FuncInfo & get(int i)
+    {
+        if(i<sizeFTable and i>=0) return FTable[i];
+        throw ErrorFunctionsTable();
     }
-    throw ErrorUnknownFunction(s);
-}
-
-#include <cstring>
-int funcNumberByLongName(const char* s)
-{
-    for(int i=0;i<sizeFTable;++i){
-        if(strcmp(s,FTable[i].longName)==0) return i;
-    }
-    throw ErrorUnknownFunction(s);
-}
+};
 
 #endif //CALC_FUNCTIONS_H

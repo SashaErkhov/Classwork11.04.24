@@ -116,10 +116,11 @@ void Formula::InfixFilter(const char* instr,char* outstr)
                     outstr[j++]=buf[0];
                     bufLen=0;
                 }
-                else
+                else if(bufLen>1)
                 {
                     buf[bufLen]='\0';
-                    outstr[j++]=FTable[funcNumberByLongName(buf)].shortName;
+                    outstr[j++]=FunctionsTable::get(
+                            FunctionsTable::funcNumberByLongName(buf)).shortName;
                     bufLen=0;
                 }
             }

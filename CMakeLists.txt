@@ -4,4 +4,6 @@ project(calc)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(calc calc.cpp
-        formulae.cpp)
+        formulae.cpp
+        functions.cpp
+        formulanode.cpp)

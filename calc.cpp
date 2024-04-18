@@ -22,7 +22,13 @@ int main() {
         while(true) {
             std::cout << "> ";
             std::cin.getline(str, 1024);
+            if(strlen(str)==0) continue;
             if (strcmp(str, "quit") == 0) break;
+            if(strcmp(str, "clear")==0)
+            {
+                global::Workspace.clear();
+                continue;
+            }
             try {
                 Formula c(str);
                 std::cout << c.str() << std::endl;

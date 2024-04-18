@@ -10,6 +10,7 @@
 #include "errors.h"
 #include <iostream>
 #include "functions.h"
+#include "AVLtree.h"
 
 class FormulaNode
 {
@@ -34,23 +35,6 @@ public:
     std::string tex()const{return str();}
 };
 //----------------------------
-class ParamNode:public FormulaNode
-{
-    const char param;
-public:
-    ParamNode(char name): param(name){}
-    double calc()const
-    {
-        double tmp;
-        std::cout<<param<<" = ";
-        std::cin>>tmp;
-        std::cin.ignore();
-        return tmp;
-    }
-    std::string str()const{return std::string(1,param);}
-    std::string tex()const{return str();}
-};
-//----------------------------
 class BinNode:public FormulaNode
 {
 protected:
@@ -58,6 +42,72 @@ protected:
 public:
     BinNode(FormulaNode* L,FormulaNode* R):left(L),right(R){}
     ~BinNode(){delete left;delete right;}
+};
+//------------------------------------------------
+class ParamValue
+{
+    const char ch;
+    const double val;
+public:
+    ParamValue(char c,double value):ch(c),val(value){}
+    double getValue() const {return val;}
+    bool operator<(const ParamValue& other) const {return ch<other.ch;}
+    bool operator==(const ParamValue& other) const {return ch==other.ch;}
+};
+//------------------------------------------------
+namespace global {
+    extern AVLTree<ParamValue> Workspace;
+}
+//---------------------------------------------
+class ParamNode:public FormulaNode
+{
+    const char param;
+public:
+    ParamNode(char name): param(name){}
+    double calc()const
+    {
+        auto pos=global::Workspace.find(ParamValue(param,0));
+        if(pos!=global::Workspace.end()) return (*pos).getValue();
+        double tmp;
+        std::cout<<param<<" = ";
+        std::cin>>tmp;
+        std::cin.ignore();
+        global::Workspace.insert(ParamValue(param,tmp));
+        return tmp;
+    }
+    std::string str()const{return std::string(1,param);}
+    std::string tex()const{return str();}
+};
+//---------------------------------------------
+class AssignmentNode:public FormulaNode
+{
+    ParamNode* left;
+    FormulaNode* right;
+public:
+    AssignmentNode(FormulaNode* L,FormulaNode* R):left(nullptr),right(R)
+    {
+        left=dynamic_cast<ParamNode*>(L);
+        if(left==nullptr) throw ErrorRValue();
+    }
+    ~AssignmentNode()
+    {
+        delete left;
+        delete right;
+    }
+    double calc()const
+    {
+        double result = right->calc();
+        char paramName=left->str()[0];
+        auto pos=global::Workspace.find(ParamValue(paramName,0));
+        if(pos!=global::Workspace.end())
+        {
+            global::Workspace.erase(pos);
+        }
+        global::Workspace.insert(ParamValue(paramName,result));
+        return result;
+    }
+    std::string str()const {return left->str()+" := " + right->str();}
+    std::string tex()const {return left->tex()+" = " + right->tex();}
 };
 //------------------------------------------------
 class PlusNode:public BinNode
@@ -134,24 +184,24 @@ class FuncNode: public UnarNode
 public:
     FuncNode(char s,FormulaNode* node):UnarNode(node)
     {
-        funcNumber= funcNumberByShortName(s);
+        funcNumber= FunctionsTable::funcNumberByShortName(s);
     }
     FuncNode(const char* s,FormulaNode* node):UnarNode(node)
     {
-        funcNumber= funcNumberByLongName(s);
+        funcNumber= FunctionsTable::funcNumberByLongName(s);
     }
     double calc() const
     {
-        return (FTable[funcNumber].fun)(next->calc());
+        return (FunctionsTable::get(funcNumber).fun)(next->calc());
     }
     std::string str() const
     {
-        return std::string(FTable[funcNumber].longName)
+        return std::string(FunctionsTable::get(funcNumber).longName)
         +"("+next->str()+")";
     }
     std::string tex() const
     {
-        return "\\"+std::string(FTable[funcNumber].longName)
+        return "\\"+std::string(FunctionsTable::get(funcNumber).longName)
                +"("+next->tex()+")";
     }
 };

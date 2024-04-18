@@ -75,5 +75,15 @@ public:
                          + std::to_string(index+1));}
 };
 
+class ErrorFunctionsTable : public Error
+{
+public:
+    std::string what() const{return std::string("Functions table: out of bounds");}
+};
+
+class ErrorRValue: public Error
+{
+    std::string value() const {return std::string("RValue");}
+};
 
 #endif // !ERRORS_PVM_2024
