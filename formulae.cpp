@@ -58,6 +58,15 @@ FormulaNode* Formula::Postfix2Tree(const char * str)
                     S.pop();
                     result = new PowNode(left, right);
                     break;
+                case '=':
+                    if(S.empty()) throw 1;
+                    right = S.top();
+                    S.pop();
+                    if (S.empty()) throw 1;
+                    left = S.top();
+                    S.pop();
+                    result = new AssignmentNode(left, right);
+                    break;
                 default:
                     if (ch >= '0' && ch <= '9') { result = new NumNode(ch - '0'); }
                     else if ((ch >= 'a' and ch <= 'z') or (ch >= 'A' and ch <= 'Z'))
@@ -145,6 +154,7 @@ int actionsRowNumber(char ch)
         case '/':return 4;
         case '^':return 5;
         case '(':return 6;
+        case '=':return 8;
     }
     return 7;
 }
@@ -161,6 +171,7 @@ int actionsColNumber(char ch)
         case '^':return 5;
         case '(':return 6;
         case ')':return 7;
+        case '=':return 10;
     }
     if(ch>='a' and ch<='z')return 8;
     if(ch>='A' and ch<='Z')return 8;
@@ -168,16 +179,17 @@ int actionsColNumber(char ch)
     return 9;
 }
 
-const unsigned char ActionsTable[][10] = {
-        // 0
-        {7,2,2,2,2,2,2,6,1, 2},
-        {3,3,3,2,2,2,2,3,1,2},
-        {3,3,3,2,2,2,2,3,1,2},
-        {3,3,3,3,3,2,2,3,1,2},
-        {3,3,3,3,3,2,2,3,1,2},
-        {3,3,3,3,3,2,2,3,1,2},
-        {5,2,2,2,2,2,2,4,1,2},
-        {3,3,3,3,3,3,2,3,1,8}
+const unsigned char ActionsTable[][11] = {
+        //       0      +      -      *      /      ^      (      )      P      F      =
+        {7, 2, 2, 2, 2, 2, 2, 6, 1, 2,2},//empty
+        {3, 3, 3, 2, 2, 2, 2, 3, 1, 2,9},// +
+        {3, 3, 3, 2, 2, 2, 2, 3, 1, 2,9},// -
+        {3, 3, 3, 3, 3, 2, 2, 3, 1, 2,9},// *
+        {3, 3, 3, 3, 3, 2, 2, 3, 1, 2,9},// /
+        {3, 3, 3, 3, 3, 2, 2, 3, 1, 2,9},// ^
+        {5, 2, 2, 2, 2, 2, 2, 4, 1, 2,2},// (
+        {3, 3, 3, 3, 3, 3, 2, 3, 1, 8,9},// F
+        {3, 2, 2, 2, 2, 2, 2, 3, 1, 2,2} // =
 };
 //1. Переместить из instr в outstr
 //2. из вх перем в стек
@@ -224,6 +236,8 @@ void Formula::Infix2Postfix(const char* instr,char* outstr)
                 break;
             case 8:
                 throw ErrorFunctionBrakets(instr,i); break;
+            case 9:
+                throw ErrorRValue(); break;
         }
     }while(action!=7);
 }

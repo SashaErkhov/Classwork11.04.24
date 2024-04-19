@@ -106,7 +106,7 @@ public:
         global::Workspace.insert(ParamValue(paramName,result));
         return result;
     }
-    std::string str()const {return left->str()+" := " + right->str();}
+    std::string str()const {return "("+ left->str()+" := " + right->str()+")";}
     std::string tex()const {return left->tex()+" = " + right->tex();}
 };
 //------------------------------------------------
